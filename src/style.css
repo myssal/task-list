@@ -1,12 +1,12 @@
 @font-face {
   font-family: 'AppFont';
-  src: url('/resources/fonts/normal.ttf') format('truetype');
+  src: url('/resources/fonts/DFPHSGothic-W5.ttf') format('truetype');
   font-weight: normal;
 }
 
 @font-face {
   font-family: 'AppFont';
-  src: url('/resources/fonts/bold.ttf') format('truetype');
+  src: url('/resources/fonts/DFPHSGothic-W7.ttf') format('truetype');
   font-weight: bold;
 }
 
@@ -36,10 +36,12 @@ body.dark-mode {
 * {
   box-sizing: border-box;
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  font-family: inherit;
 }
 
 body {
   font-family: 'AppFont', sans-serif;
+  font-size: 18px;
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
@@ -55,7 +57,7 @@ body {
 
 /* Side Panel */
 #side-panel {
-  width: 280px;
+  width: 300px;
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -68,14 +70,14 @@ body {
   align-items: center;
   gap: 15px;
   font-weight: bold;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin-bottom: 40px;
   padding-left: 10px;
 }
 
 .nav-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
@@ -84,15 +86,15 @@ body {
   border: none;
   color: var(--text-color);
   text-align: left;
-  padding: 12px 15px;
+  padding: 14px 18px;
   width: 100%;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .nav-btn:hover {
@@ -127,29 +129,31 @@ header {
 h1 { 
   font-weight: bold; 
   margin: 0;
-  font-size: 2rem;
+  font-size: 2.4rem;
 }
 
 .sort-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   position: relative;
+  font-size: 1.1rem;
 }
 
 #sort-trigger-btn {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  padding: 5px 15px;
+  padding: 6px 18px;
   border-radius: 4px;
   color: var(--text-color);
   cursor: pointer;
-  min-width: 40px;
+  min-width: 45px;
+  font-size: 1.1rem;
 }
 
 /* Task Groups */
 .task-group {
-  margin-bottom: 40px;
+  margin-bottom: 45px;
 }
 
 .group-header {
@@ -158,11 +162,11 @@ h1 {
   display: flex;
   align-items: center;
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .group-header h2 {
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: #888;
   margin: 0;
   display: flex;
@@ -181,7 +185,7 @@ h1 {
 
 .group-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
@@ -192,43 +196,58 @@ h1 {
 /* Task Card */
 .task-card {
   border: 1px solid var(--border-color);
-  padding: 20px;
-  border-radius: 8px;
+  padding: 15px;
+  border-radius: 4px;
   background: var(--card-bg);
   box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 120px;
-}
-
-.task-card-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 20px;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .task-card h3 { 
   margin: 0; 
   font-weight: bold;
-  font-size: 1.1rem;
-  flex-grow: 1;
+  font-size: 1.2rem;
+  grid-column: 1;
+  grid-row: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  align-self: end;
 }
 
-.task-card-body {
+.task-card-date {
+  color: #888;
+  font-size: 1rem;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+}
+
+.task-card-meta {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  justify-self: end;
+  align-self: center;
+}
+
+.tag-label, .detail-btn {
+  height: fit-content;
+  display: flex;
+  align-items: center;
 }
 
 .tag-label {
   background: var(--sidebar-bg);
   padding: 4px 10px;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
@@ -240,11 +259,6 @@ h1 {
   padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.task-card-footer {
-  color: #888;
   font-size: 0.9rem;
 }
 
@@ -264,14 +278,16 @@ h1 {
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
   z-index: 10;
+  padding: 0;
 }
 
-#fab-add-task:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
+#fab-add-task img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 15px;
+  display: block;
 }
-
-#fab-add-task img { width: 32px; }
 
 /* Sort Popup */
 .popup {

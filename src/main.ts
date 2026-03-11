@@ -49,11 +49,11 @@ function applySettings() {
     if (settings.darkMode) {
         document.body.classList.add('dark-mode');
         document.body.classList.remove('light-mode');
-        addIcon.src = '/resources/dark_mode/add_white.png';
+        addIcon.src = '/resources/images/dark_mode/add_dark.png';
     } else {
         document.body.classList.remove('dark-mode');
         document.body.classList.add('light-mode');
-        addIcon.src = '/resources/light_mode/add_dark.png';
+        addIcon.src = '/resources/images/light_mode/add_white.png';
     }
     (document.getElementById('dark-mode-toggle') as HTMLInputElement).checked = settings.darkMode;
 }
@@ -140,7 +140,12 @@ function renderTasks() {
         groupEl.style.display = 'block';
 
         if (collapsedGroups.has(tag)) {
-            container.parentElement!.classList.add('collapsed');
+            groupEl.classList.add('collapsed');
+        } else {
+            groupEl.classList.remove('collapsed');
+        }
+
+        if (collapsedGroups.has(tag)) {
             return;
         }
 
@@ -157,13 +162,13 @@ function renderTasks() {
             card.innerHTML = `
                 <div class="task-card-header">
                     <h3>${task.name}</h3>
+                    <div class="task-card-meta">
+                        <span class="tag-label">${task.tag}</span>
+                        <button class="detail-btn" data-id="${task.id}">Detail</button>
+                    </div>
                 </div>
-                <div class="task-card-body">
-                    <span class="tag-label">${task.tag}</span>
-                    <button class="detail-btn" data-id="${task.id}">Detail</button>
-                </div>
-                <div class="task-card-footer">
-                    <small>${new Date(task.dateAdded).toLocaleDateString()}</small>
+                <div class="task-card-date">
+                    ${new Date(task.dateAdded).toLocaleDateString()}
                 </div>
             `;
             container.appendChild(card);
@@ -264,4 +269,6 @@ document.getElementById('dark-mode-toggle')!.addEventListener('change', (e) => {
 });
 
 updateSortButtons();
-loadData();
+loadData().then(() => {
+    applySettings();
+});
