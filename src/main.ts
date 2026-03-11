@@ -56,6 +56,7 @@ navTasks.onclick = () => {
     settingsView.style.display = 'none';
     navTasks.classList.add('active');
     navSettings.classList.remove('active');
+    fabAdd.style.display = 'flex';
 };
 
 navSettings.onclick = () => {
@@ -63,6 +64,7 @@ navSettings.onclick = () => {
     settingsView.style.display = 'block';
     navSettings.classList.add('active');
     navTasks.classList.remove('active');
+    fabAdd.style.display = 'none';
 };
 
 // Sort & Filter
