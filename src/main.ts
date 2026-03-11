@@ -47,16 +47,7 @@ async function saveData() {
 }
 
 function applySettings() {
-    if (settings.darkMode) {
-        document.body.classList.add('dark-mode');
-        document.body.classList.remove('light-mode');
-        addIcon.src = '/resources/images/dark_mode/add_dark.png';
-    } else {
-        document.body.classList.remove('dark-mode');
-        document.body.classList.add('light-mode');
-        addIcon.src = '/resources/images/light_mode/add_light.png';
-    }
-    (document.getElementById('dark-mode-toggle') as HTMLInputElement).checked = settings.darkMode;
+    addIcon.src = '/resources/images/dark_mode/add_dark.png';
 }
 
 // Navigation
@@ -485,13 +476,7 @@ window.onclick = (event) => {
     }
 };
 
-// Dark Mode
-document.getElementById('dark-mode-toggle')!.addEventListener('change', (e) => {
-    settings.darkMode = (e.target as HTMLInputElement).checked;
-    applySettings();
-    saveData();
-});
-
+// Settings view update
 updateSortButtons();
 loadData().then(() => {
     applySettings();

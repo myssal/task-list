@@ -19,7 +19,7 @@ export interface Task {
 }
 
 export interface AppSettings {
-    darkMode: boolean;
+    // Other settings if any
 }
 
 export interface AppData {

@@ -11,19 +11,6 @@
 }
 
 :root {
-  --bg-color: rgba(255, 255, 255, 0.02);
-  --text-color: #000000;
-  --sidebar-bg: rgba(245, 245, 245, 0.1);
-  --card-bg: rgba(255, 255, 255, 0.2);
-  --modal-content-bg: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(0, 0, 0, 0.12);
-  --accent-color: #1976d2;
-  --header-line: rgba(0, 0, 0, 0.15);
-  --shadow: 0 2px 4px rgba(0,0,0,0.1);
-  --modal-bg: rgba(0,0,0,0.25);
-}
-
-body.dark-mode {
   --bg-color: rgba(18, 18, 18, 0.05);
   --text-color: #e0e0e0;
   --sidebar-bg: rgba(30, 30, 30, 0.2);
@@ -31,6 +18,7 @@ body.dark-mode {
   --modal-content-bg: rgba(20, 20, 20, 0.8);
   --border-color: rgba(255, 255, 255, 0.08);
   --header-line: rgba(255, 255, 255, 0.1);
+  --accent-color: #1976d2;
   --shadow: 0 4px 12px rgba(0,0,0,0.2);
   --modal-bg: rgba(0,0,0,0.4);
 }
@@ -173,12 +161,13 @@ h1 {
 
 .group-header h2 {
   font-size: 1.2rem;
-  color: #555;
+  color: #ffffff;
   margin: 0;
   display: flex;
   align-items: center;
   width: 100%;
   white-space: nowrap;
+  opacity: 0.9;
 }
 
 .group-header h2::after {
@@ -226,11 +215,12 @@ h1 {
 }
 
 .task-card-date {
-  color: #444;
+  color: #ffffff;
   font-size: 1rem;
   grid-column: 1;
   grid-row: 2;
   align-self: start;
+  opacity: 0.9;
 }
 
 .task-card-meta {
@@ -255,33 +245,20 @@ h1 {
   font-size: 0.9rem;
   font-weight: bold;
   border: 1px solid transparent;
+  color: #ffffff;
 }
 
-/* Light Mode Tag Colors */
+/* Tag Colors */
 .tag-label[data-tag="Highlight"], .tag-opt[data-tag="Highlight"].active {
-  background-color: #fff9c4; border-color: #fbc02d; color: #827717;
-}
-.tag-label[data-tag="Pending"], .tag-opt[data-tag="Pending"].active {
-  background-color: #e3f2fd; border-color: #2196f3; color: #0d47a1;
-}
-.tag-label[data-tag="On hold"], .tag-opt[data-tag="On hold"].active {
-  background-color: #fbe9e7; border-color: #ff5722; color: #bf360c;
-}
-.tag-label[data-tag="Finished"], .tag-opt[data-tag="Finished"].active {
-  background-color: #e8f5e9; border-color: #4caf50; color: #1b5e20;
-}
-
-/* Dark Mode Tag Colors */
-body.dark-mode .tag-label[data-tag="Highlight"], body.dark-mode .tag-opt[data-tag="Highlight"].active {
   background-color: #5d5300; border-color: #fbc02d; color: #fff9c4;
 }
-body.dark-mode .tag-label[data-tag="Pending"], body.dark-mode .tag-opt[data-tag="Pending"].active {
+.tag-label[data-tag="Pending"], .tag-opt[data-tag="Pending"].active {
   background-color: #0d47a1; border-color: #2196f3; color: #e3f2fd;
 }
-body.dark-mode .tag-label[data-tag="On hold"], body.dark-mode .tag-opt[data-tag="On hold"].active {
+.tag-label[data-tag="On hold"], .tag-opt[data-tag="On hold"].active {
   background-color: #bf360c; border-color: #ff5722; color: #fbe9e7;
 }
-body.dark-mode .tag-label[data-tag="Finished"], body.dark-mode .tag-opt[data-tag="Finished"].active {
+.tag-label[data-tag="Finished"], .tag-opt[data-tag="Finished"].active {
   background-color: #1b5e20; border-color: #4caf50; color: #e8f5e9;
 }
 
@@ -525,10 +502,6 @@ body.dark-mode .sort-opt:hover, body.dark-mode .filter-opt:hover, body.dark-mode
   gap: 40px;
   margin-bottom: 30px;
   font-size: 0.95rem;
-  color: #333;
-}
-
-body.dark-mode .detail-meta {
   color: #ccc;
 }
 
@@ -634,10 +607,6 @@ body.dark-mode .detail-meta {
 }
 
 .subtask-table td button:hover {
-  background: rgba(0,0,0,0.1);
-}
-
-body.dark-mode .subtask-table td button:hover {
   background: rgba(255,255,255,0.1);
 }
 
