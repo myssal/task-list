@@ -1,16 +1,20 @@
-export type Status = 'pending' | 'on hold' | 'finished';
+export type TaskTag = 'Highlight' | 'Pending' | 'On hold' | 'Finished';
 
 export interface Task {
     id: string;
     name: string;
     description: string;
-    tags: string[];
-    dateCreated: string;
-    status: Status;
-    highlighted: boolean;
+    tag: TaskTag;
+    dateAdded: string;
+    dateModified: string;
+    deadline: string;
+}
+
+export interface AppSettings {
+    darkMode: boolean;
 }
 
 export interface AppData {
     tasks: Task[];
-    tags: string[];
+    settings: AppSettings;
 }

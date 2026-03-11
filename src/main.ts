@@ -1,282 +1,267 @@
-import { Task, Status } from './types';
+import { Task, TaskTag, AppSettings } from './types';
 
 let allTasks: Task[] = [];
-let allTags: string[] = [];
-let currentEditingTags: string[] = [];
+let settings: AppSettings = { darkMode: false };
 
-const taskList = document.getElementById('task-list')!;
-const addTaskBtn = document.getElementById('add-task-btn')!;
-const modal = document.getElementById('task-modal')!;
-const closeBtn = document.querySelector('.close')!;
-const taskForm = document.getElementById('task-form') as HTMLFormElement;
-const tagInput = document.getElementById('new-tag-input') as HTMLInputElement;
-const addTagBtnInner = document.getElementById('add-tag-btn-inner')!;
-const currentTagsContainer = document.getElementById('current-tags')!;
-const existingTagsList = document.getElementById('existing-tags-list')!;
-const tagsListManager = document.getElementById('tags-list')!;
+let currentSortOrder: 'asc' | 'desc' = 'asc';
+let currentSortDate: 'added' | 'modified' = 'added';
+let activeFilters: TaskTag[] = ['Highlight', 'Pending', 'On hold', 'Finished'];
+let collapsedGroups: Set<TaskTag> = new Set();
 
-// API calls
+const tasksView = document.getElementById('tasks-view')!;
+const settingsView = document.getElementById('settings-view')!;
+const navTasks = document.getElementById('nav-tasks')!;
+const navSettings = document.getElementById('nav-settings')!;
+
+const sortTrigger = document.getElementById('sort-trigger-btn')!;
+const sortPopup = document.getElementById('sort-popup')!;
+const fabAdd = document.getElementById('fab-add-task')!;
+const addIcon = document.getElementById('add-icon') as HTMLImageElement;
+
+const taskAddModal = document.getElementById('task-add-modal')!;
+const taskDetailModal = document.getElementById('task-detail-modal')!;
+
+let currentEditingTag: TaskTag = 'Pending';
+
+// API
 async function loadData() {
     try {
         const response = await fetch('/api/data');
         const data = await response.json();
         allTasks = data.tasks || [];
-        allTags = data.tags || [];
+        settings = data.settings || { darkMode: false };
+        applySettings();
         renderTasks();
-        renderTagsManager();
-        updateDatalist();
     } catch (e) {
-        console.error('Failed to load data', e);
+        console.error('Load failed', e);
     }
 }
 
 async function saveData() {
-    try {
-        await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tasks: allTasks, tags: allTags })
-        });
-    } catch (e) {
-        console.error('Failed to save data', e);
-    }
-}
-
-function renderTasks() {
-    taskList.innerHTML = '';
-    // Sort: highlighted first, then by date
-    const sortedTasks = [...allTasks].sort((a, b) => {
-        if (a.highlighted && !b.highlighted) return -1;
-        if (!a.highlighted && b.highlighted) return 1;
-        return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
-    });
-
-    sortedTasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = `task-card ${task.status.replace(' ', '-')} ${task.highlighted ? 'highlighted' : ''}`;
-        card.innerHTML = `
-            <div class="task-header">
-                <h3>${task.name}</h3>
-                <div class="actions">
-                    <button class="edit-btn" data-id="${task.id}">Edit</button>
-                    <button class="delete-btn" data-id="${task.id}">Delete</button>
-                </div>
-            </div>
-            <p>${task.description}</p>
-            <div class="task-tags">
-                ${task.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-            </div>
-            <div class="task-footer">
-                <small>Created: ${new Date(task.dateCreated).toLocaleString()}</small>
-                <select class="status-select" data-id="${task.id}">
-                    <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
-                    <option value="on hold" ${task.status === 'on hold' ? 'selected' : ''}>On Hold</option>
-                    <option value="finished" ${task.status === 'finished' ? 'selected' : ''}>Finished</option>
-                </select>
-            </div>
-        `;
-        taskList.appendChild(card);
-    });
-
-    // Add event listeners to buttons and selects
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const id = (e.target as HTMLButtonElement).dataset.id!;
-            openEditModal(id);
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const id = (e.target as HTMLButtonElement).dataset.id!;
-            deleteTask(id);
-        });
-    });
-
-    document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', (e) => {
-            const id = (e.target as HTMLSelectElement).dataset.id!;
-            const status = (e.target as HTMLSelectElement).value as Status;
-            updateTaskStatus(id, status);
-        });
+    await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: allTasks, settings })
     });
 }
 
-function renderTagsManager() {
-    tagsListManager.innerHTML = '';
-    allTags.forEach(tag => {
-        const tagEl = document.createElement('div');
-        tagEl.className = 'tag-item';
-        tagEl.innerHTML = `
-            <span>${tag}</span>
-            <div class="tag-actions">
-                <button class="rename-tag-btn" data-tag="${tag}">Rename</button>
-                <button class="delete-tag-btn" data-tag="${tag}">x</button>
-            </div>
-        `;
-        tagsListManager.appendChild(tagEl);
-    });
-
-    document.querySelectorAll('.delete-tag-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tag = (e.target as HTMLButtonElement).dataset.tag!;
-            deleteTag(tag);
-        });
-    });
-
-    document.querySelectorAll('.rename-tag-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tag = (e.target as HTMLButtonElement).dataset.tag!;
-            renameTag(tag);
-        });
-    });
-}
-
-async function renameTag(oldTag: string) {
-    const newTag = prompt(`Rename tag "${oldTag}" to:`, oldTag);
-    if (newTag && newTag.trim() !== '' && newTag !== oldTag) {
-        const trimmedNewTag = newTag.trim();
-        if (allTags.includes(trimmedNewTag)) {
-            alert('Tag already exists!');
-            return;
-        }
-        allTags = allTags.map(t => t === oldTag ? trimmedNewTag : t);
-        allTasks.forEach(task => {
-            task.tags = task.tags.map(t => t === oldTag ? trimmedNewTag : t);
-        });
-        await saveData();
-        renderTasks();
-        renderTagsManager();
-        updateDatalist();
-    }
-}
-
-function updateDatalist() {
-    existingTagsList.innerHTML = '';
-    allTags.forEach(tag => {
-        const opt = document.createElement('option');
-        opt.value = tag;
-        existingTagsList.appendChild(opt);
-    });
-}
-
-function openEditModal(id?: string) {
-    const task = id ? allTasks.find(t => t.id === id) : null;
-    const modalTitle = document.getElementById('modal-title')!;
-    const taskIdInput = document.getElementById('task-id') as HTMLInputElement;
-    const nameInput = document.getElementById('task-name') as HTMLInputElement;
-    const descInput = document.getElementById('task-desc') as HTMLTextAreaElement;
-    const statusSelect = document.getElementById('task-status') as HTMLSelectElement;
-    const highlightCheck = document.getElementById('task-highlight') as HTMLInputElement;
-
-    if (task) {
-        modalTitle.textContent = 'Edit Task';
-        taskIdInput.value = task.id;
-        nameInput.value = task.name;
-        descInput.value = task.description;
-        statusSelect.value = task.status;
-        highlightCheck.checked = task.highlighted;
-        currentEditingTags = [...task.tags];
+function applySettings() {
+    if (settings.darkMode) {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        addIcon.src = '/resources/dark_mode/add_white.png';
     } else {
-        modalTitle.textContent = 'Add New Task';
-        taskForm.reset();
-        taskIdInput.value = '';
-        currentEditingTags = [];
+        document.body.classList.remove('dark-mode');
+        document.body.classList.add('light-mode');
+        addIcon.src = '/resources/light_mode/add_dark.png';
     }
-    renderCurrentEditingTags();
-    modal.style.display = 'block';
+    (document.getElementById('dark-mode-toggle') as HTMLInputElement).checked = settings.darkMode;
 }
 
-function renderCurrentEditingTags() {
-    currentTagsContainer.innerHTML = '';
-    currentEditingTags.forEach(tag => {
-        const badge = document.createElement('span');
-        badge.className = 'tag-badge';
-        badge.innerHTML = `${tag} <button type="button" data-tag="${tag}">&times;</button>`;
-        currentTagsContainer.appendChild(badge);
-        badge.querySelector('button')!.addEventListener('click', () => {
-            currentEditingTags = currentEditingTags.filter(t => t !== tag);
-            renderCurrentEditingTags();
-        });
-    });
-}
-
-addTaskBtn.onclick = () => openEditModal();
-closeBtn.onclick = () => modal.style.display = 'none';
-window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
-
-addTagBtnInner.onclick = () => {
-    const tag = tagInput.value.trim();
-    if (tag && !currentEditingTags.includes(tag)) {
-        currentEditingTags.push(tag);
-        if (!allTags.includes(tag)) {
-            allTags.push(tag);
-            saveData();
-            updateDatalist();
-            renderTagsManager();
-        }
-        tagInput.value = '';
-        renderCurrentEditingTags();
-    }
+// Navigation
+navTasks.onclick = () => {
+    tasksView.style.display = 'block';
+    settingsView.style.display = 'none';
+    navTasks.classList.add('active');
+    navSettings.classList.remove('active');
 };
 
-taskForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const id = (document.getElementById('task-id') as HTMLInputElement).value;
+navSettings.onclick = () => {
+    tasksView.style.display = 'none';
+    settingsView.style.display = 'block';
+    navSettings.classList.add('active');
+    navTasks.classList.remove('active');
+};
+
+// Sort & Filter
+sortTrigger.onclick = () => {
+    sortPopup.style.display = sortPopup.style.display === 'block' ? 'none' : 'block';
+};
+
+document.querySelectorAll('.sort-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-type');
+        const val = btn.getAttribute('data-val');
+        if (type === 'order') currentSortOrder = val as any;
+        if (type === 'date') currentSortDate = val as any;
+        renderTasks();
+        updateSortButtons();
+    });
+});
+
+function updateSortButtons() {
+    document.querySelectorAll('.sort-opt').forEach(btn => {
+        const type = btn.getAttribute('data-type');
+        const val = btn.getAttribute('data-val');
+        if ((type === 'order' && val === currentSortOrder) || (type === 'date' && val === currentSortDate)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+document.querySelectorAll('.filter-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tag = btn.getAttribute('data-tag') as TaskTag;
+        if (activeFilters.includes(tag)) {
+            activeFilters = activeFilters.filter(t => t !== tag);
+            btn.classList.remove('active');
+        } else {
+            activeFilters.push(tag);
+            btn.classList.add('active');
+        }
+        renderTasks();
+    });
+});
+
+// Rendering
+function renderTasks() {
+    const groups: Record<TaskTag, Task[]> = {
+        'Highlight': [], 'Pending': [], 'On hold': [], 'Finished': []
+    };
+
+    allTasks.forEach(task => {
+        if (activeFilters.includes(task.tag)) {
+            groups[task.tag].push(task);
+        }
+    });
+
+    Object.keys(groups).forEach(tagStr => {
+        const tag = tagStr as TaskTag;
+        const container = document.querySelector(`#group-${tag.replace(' ', '\\ ')} .group-content`)!;
+        container.innerHTML = '';
+        
+        const groupEl = document.getElementById(`group-${tag}`)!;
+        if (!activeFilters.includes(tag)) {
+            groupEl.style.display = 'none';
+            return;
+        }
+        groupEl.style.display = 'block';
+
+        if (collapsedGroups.has(tag)) {
+            container.parentElement!.classList.add('collapsed');
+            return;
+        }
+
+        let tasks = groups[tag];
+        tasks.sort((a, b) => {
+            const dateA = new Date(currentSortDate === 'added' ? a.dateAdded : a.dateModified).getTime();
+            const dateB = new Date(currentSortDate === 'added' ? b.dateAdded : b.dateModified).getTime();
+            return currentSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.innerHTML = `
+                <div class="task-card-header">
+                    <h3>${task.name}</h3>
+                </div>
+                <div class="task-card-body">
+                    <span class="tag-label">${task.tag}</span>
+                    <button class="detail-btn" data-id="${task.id}">Detail</button>
+                </div>
+                <div class="task-card-footer">
+                    <small>${new Date(task.dateAdded).toLocaleDateString()}</small>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    });
+
+    document.querySelectorAll('.detail-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = (e.target as HTMLButtonElement).dataset.id!;
+            showDetail(id);
+        });
+    });
+}
+
+// Group Collapse
+document.querySelectorAll('.group-header').forEach(header => {
+    header.addEventListener('click', () => {
+        const tag = header.getAttribute('data-tag') as TaskTag;
+        if (collapsedGroups.has(tag)) collapsedGroups.delete(tag);
+        else collapsedGroups.add(tag);
+        renderTasks();
+    });
+});
+
+// Task Add/Edit
+fabAdd.onclick = () => {
+    (document.getElementById('task-name') as HTMLInputElement).value = '';
+    (document.getElementById('task-desc') as HTMLTextAreaElement).value = '';
+    (document.getElementById('task-deadline') as HTMLInputElement).value = '';
+    currentEditingTag = 'Pending';
+    updateTagSelector();
+    taskAddModal.style.display = 'block';
+};
+
+function updateTagSelector() {
+    document.querySelectorAll('.tag-opt').forEach(btn => {
+        if (btn.getAttribute('data-tag') === currentEditingTag) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+document.querySelectorAll('.tag-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+        currentEditingTag = btn.getAttribute('data-tag') as TaskTag;
+        updateTagSelector();
+    });
+});
+
+document.getElementById('save-task-btn')!.onclick = async () => {
     const name = (document.getElementById('task-name') as HTMLInputElement).value;
     const description = (document.getElementById('task-desc') as HTMLTextAreaElement).value;
-    const status = (document.getElementById('task-status') as HTMLSelectElement).value as Status;
-    const highlighted = (document.getElementById('task-highlight') as HTMLInputElement).checked;
+    const deadline = (document.getElementById('task-deadline') as HTMLInputElement).value;
+    
+    const newTask: Task = {
+        id: Date.now().toString(),
+        name,
+        description,
+        deadline,
+        tag: currentEditingTag,
+        dateAdded: new Date().toISOString(),
+        dateModified: new Date().toISOString()
+    };
 
-    if (id) {
-        const index = allTasks.findIndex(t => t.id === id);
-        allTasks[index] = { ...allTasks[index], name, description, status, highlighted, tags: [...currentEditingTags] };
-    } else {
-        const newTask: Task = {
-            id: Date.now().toString(),
-            name,
-            description,
-            status,
-            highlighted,
-            tags: [...currentEditingTags],
-            dateCreated: new Date().toISOString()
-        };
-        allTasks.push(newTask);
-    }
-
+    allTasks.push(newTask);
     await saveData();
-    modal.style.display = 'none';
+    taskAddModal.style.display = 'none';
     renderTasks();
 };
 
-async function deleteTask(id: string) {
-    if (confirm('Are you sure?')) {
+document.getElementById('cancel-task-btn')!.onclick = () => taskAddModal.style.display = 'none';
+
+// Detail
+function showDetail(id: string) {
+    const task = allTasks.find(t => t.id === id);
+    if (!task) return;
+
+    document.getElementById('detail-name-date')!.textContent = `${task.name} - ${new Date(task.dateAdded).toLocaleDateString()}`;
+    document.getElementById('detail-desc')!.textContent = task.description;
+    document.getElementById('detail-tags')!.textContent = `Tag: ${task.tag} | Deadline: ${task.deadline}`;
+    
+    document.getElementById('delete-task-btn')!.onclick = async () => {
         allTasks = allTasks.filter(t => t.id !== id);
         await saveData();
+        taskDetailModal.style.display = 'none';
         renderTasks();
-    }
+    };
+
+    taskDetailModal.style.display = 'block';
 }
 
-async function updateTaskStatus(id: string, status: Status) {
-    const task = allTasks.find(t => t.id === id);
-    if (task) {
-        task.status = status;
-        await saveData();
-        renderTasks();
-    }
-}
+document.getElementById('close-detail-btn')!.onclick = () => taskDetailModal.style.display = 'none';
 
-async function deleteTag(tag: string) {
-    if (confirm(`Delete tag "${tag}" and remove it from all tasks?`)) {
-        allTags = allTags.filter(t => t !== tag);
-        allTasks.forEach(task => {
-            task.tags = task.tags.filter(t => t !== tag);
-        });
-        await saveData();
-        renderTasks();
-        renderTagsManager();
-        updateDatalist();
-    }
-}
+// Dark Mode
+document.getElementById('dark-mode-toggle')!.addEventListener('change', (e) => {
+    settings.darkMode = (e.target as HTMLInputElement).checked;
+    applySettings();
+    saveData();
+});
 
+updateSortButtons();
 loadData();
