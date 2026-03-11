@@ -351,42 +351,36 @@ h1 {
 
 .modal-content {
   background: var(--card-bg);
-  margin: 10vh auto;
+  margin: 8vh auto;
   padding: 30px;
-  width: 480px;
+  width: 600px;
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
 .modal-content h2 {
   margin-top: 0;
-  margin-bottom: 25px;
-  font-weight: bold;
-}
-
-.form-group {
   margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
   font-weight: bold;
 }
 
-input[type="text"], input[type="date"], textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-color);
-  color: var(--text-color);
-  border-radius: 6px;
-  font-family: inherit;
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
-textarea {
-  height: 120px;
-  resize: vertical;
+.form-row label {
+  width: 120px;
+  font-weight: bold;
+}
+
+.form-row input[type="text"], .form-row input[type="date"], .form-row textarea {
+  flex-grow: 1;
+}
+
+.tags-row {
+  margin-top: 15px;
 }
 
 .tag-selector {
@@ -395,24 +389,101 @@ textarea {
   gap: 10px;
 }
 
-.tag-opt {
-  padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-color);
-  color: var(--text-color);
-  cursor: pointer;
-  border-radius: 6px;
+.modal-actions.right {
+  justify-content: flex-end;
 }
 
-.tag-opt.active {
+/* Detail Modal specific */
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.detail-header h2 {
+  margin: 0;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+body.dark-mode .detail-meta {
+  color: #aaa;
+}
+
+.subtask-section h3 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.subtask-add-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.subtask-add-form input {
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+.subtask-add-form button {
+  padding: 8px 16px;
   background: var(--accent-color);
   color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.subtask-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.subtask-table th, .subtask-table td {
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.subtask-table th {
+  background: var(--sidebar-bg);
+  font-weight: bold;
+}
+
+.subtask-table td button {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 4px;
+}
+
+.subtask-table td button:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+body.dark-mode .subtask-table td button:hover {
+  background: rgba(255,255,255,0.1);
 }
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
+  justify-content: space-between;
   margin-top: 30px;
 }
 

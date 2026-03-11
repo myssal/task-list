@@ -1,5 +1,12 @@
 export type TaskTag = 'Highlight' | 'Pending' | 'On hold' | 'Finished';
 
+export interface SubTask {
+    id: string;
+    name: string;
+    description: string;
+    status: 'Pending' | 'Finished';
+}
+
 export interface Task {
     id: string;
     name: string;
@@ -8,6 +15,7 @@ export interface Task {
     dateAdded: string;
     dateModified: string;
     deadline: string;
+    subTasks: SubTask[];
 }
 
 export interface AppSettings {

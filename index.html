@@ -96,18 +96,18 @@
 
         <!-- Task Add Modal -->
         <div id="task-add-modal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content task-add-content">
                 <h2>New task</h2>
-                <div class="form-group">
+                <div class="form-row">
                     <label>Name: </label><input type="text" id="task-name">
                 </div>
-                <div class="form-group">
+                <div class="form-row">
                     <label>Description: </label><textarea id="task-desc"></textarea>
                 </div>
-                <div class="form-group">
+                <div class="form-row">
                     <label>Deadline: </label><input type="date" id="task-deadline">
                 </div>
-                <div class="form-group">
+                <div class="form-row tags-row">
                     <label>Tags: </label>
                     <div class="tag-selector">
                         <button class="tag-opt" data-tag="Highlight">Highlight</button>
@@ -116,7 +116,7 @@
                         <button class="tag-opt" data-tag="Finished">Finished</button>
                     </div>
                 </div>
-                <div class="modal-actions">
+                <div class="modal-actions right">
                     <button id="save-task-btn">Save</button>
                     <button id="cancel-task-btn">Cancel</button>
                 </div>
@@ -125,10 +125,36 @@
 
         <!-- Task Detail Modal -->
         <div id="task-detail-modal" class="modal">
-            <div class="modal-content">
-                <h2 id="detail-name-date"></h2>
-                <p id="detail-desc"></p>
-                <p id="detail-tags"></p>
+            <div class="modal-content task-detail-content">
+                <div class="detail-header">
+                    <h2 id="detail-name"></h2>
+                    <span id="detail-tag" class="tag-label"></span>
+                </div>
+                <div class="detail-meta">
+                    <div>Date added: <span id="detail-added"></span></div>
+                    <div>Deadline: <span id="detail-deadline"></span></div>
+                </div>
+                <div class="subtask-section">
+                    <h3>Sub-task</h3>
+                    <div class="subtask-add-form">
+                        <input type="text" id="subtask-name" placeholder="Sub-task name">
+                        <input type="text" id="subtask-desc" placeholder="Description">
+                        <button id="add-subtask-btn">Add</button>
+                    </div>
+                    <table class="subtask-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Desc</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subtask-list">
+                            <!-- Subtasks will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="modal-actions">
                     <button id="close-detail-btn">Close</button>
                     <button id="delete-task-btn">Delete</button>

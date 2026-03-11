@@ -53,7 +53,7 @@ function applySettings() {
     } else {
         document.body.classList.remove('dark-mode');
         document.body.classList.add('light-mode');
-        addIcon.src = '/resources/images/light_mode/add_white.png';
+        addIcon.src = '/resources/images/light_mode/add_light.png';
     }
     (document.getElementById('dark-mode-toggle') as HTMLInputElement).checked = settings.darkMode;
 }
@@ -229,7 +229,8 @@ document.getElementById('save-task-btn')!.onclick = async () => {
         deadline,
         tag: currentEditingTag,
         dateAdded: new Date().toISOString(),
-        dateModified: new Date().toISOString()
+        dateModified: new Date().toISOString(),
+        subTasks: []
     };
 
     allTasks.push(newTask);
@@ -245,10 +246,33 @@ function showDetail(id: string) {
     const task = allTasks.find(t => t.id === id);
     if (!task) return;
 
-    document.getElementById('detail-name-date')!.textContent = `${task.name} - ${new Date(task.dateAdded).toLocaleDateString()}`;
-    document.getElementById('detail-desc')!.textContent = task.description;
-    document.getElementById('detail-tags')!.textContent = `Tag: ${task.tag} | Deadline: ${task.deadline}`;
+    document.getElementById('detail-name')!.textContent = task.name;
+    document.getElementById('detail-tag')!.textContent = task.tag;
+    document.getElementById('detail-added')!.textContent = new Date(task.dateAdded).toLocaleDateString();
+    document.getElementById('detail-deadline')!.textContent = task.deadline || 'None';
     
+    renderSubTasks(task);
+
+    document.getElementById('add-subtask-btn')!.onclick = async () => {
+        const subName = (document.getElementById('subtask-name') as HTMLInputElement).value;
+        const subDesc = (document.getElementById('subtask-desc') as HTMLInputElement).value;
+        if (!subName) return;
+
+        if (!task.subTasks) task.subTasks = [];
+        task.subTasks.push({
+            id: Date.now().toString(),
+            name: subName,
+            description: subDesc,
+            status: 'Pending'
+        });
+        
+        (document.getElementById('subtask-name') as HTMLInputElement).value = '';
+        (document.getElementById('subtask-desc') as HTMLInputElement).value = '';
+        
+        await saveData();
+        renderSubTasks(task);
+    };
+
     document.getElementById('delete-task-btn')!.onclick = async () => {
         allTasks = allTasks.filter(t => t.id !== id);
         await saveData();
@@ -257,6 +281,45 @@ function showDetail(id: string) {
     };
 
     taskDetailModal.style.display = 'block';
+}
+
+function renderSubTasks(task: Task) {
+    const container = document.getElementById('subtask-list')!;
+    container.innerHTML = '';
+    
+    if (!task.subTasks) task.subTasks = [];
+
+    task.subTasks.forEach(sub => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${sub.name}</td>
+            <td>${sub.description}</td>
+            <td><button class="toggle-sub-btn" data-sub-id="${sub.id}">${sub.status}</button></td>
+            <td><button class="del-sub-btn" data-sub-id="${sub.id}">Delete</button></td>
+        `;
+        container.appendChild(row);
+    });
+
+    document.querySelectorAll('.toggle-sub-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const subId = (e.target as HTMLButtonElement).dataset.subId!;
+            const sub = task.subTasks.find(s => s.id === subId);
+            if (sub) {
+                sub.status = sub.status === 'Pending' ? 'Finished' : 'Pending';
+                await saveData();
+                renderSubTasks(task);
+            }
+        });
+    });
+
+    document.querySelectorAll('.del-sub-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const subId = (e.target as HTMLButtonElement).dataset.subId!;
+            task.subTasks = task.subTasks.filter(s => s.id !== subId);
+            await saveData();
+            renderSubTasks(task);
+        });
+    });
 }
 
 document.getElementById('close-detail-btn')!.onclick = () => taskDetailModal.style.display = 'none';
