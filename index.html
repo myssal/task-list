@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes App</title>
+    <link rel="stylesheet" href="/src/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>My Tasks</h1>
+        <button id="add-task-btn">Add New Task</button>
+      </header>
+
+      <main>
+        <div id="task-list"></div>
+      </main>
+
+      <!-- Modal for adding/editing tasks -->
+      <div id="task-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2 id="modal-title">Add New Task</h2>
+          <form id="task-form">
+            <input type="hidden" id="task-id">
+            <div class="form-group">
+              <label for="task-name">Name</label>
+              <input type="text" id="task-name" required>
+            </div>
+            <div class="form-group">
+              <label for="task-desc">Description</label>
+              <textarea id="task-desc"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="task-tags">Tags</label>
+              <div id="tags-container">
+                <div id="current-tags"></div>
+                <div class="tag-input-wrapper">
+                  <input type="text" id="new-tag-input" list="existing-tags-list" placeholder="Add a tag...">
+                  <datalist id="existing-tags-list"></datalist>
+                  <button type="button" id="add-tag-btn-inner">Add</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="task-status">Status</label>
+              <select id="task-status">
+                <option value="pending">Pending</option>
+                <option value="on hold">On Hold</option>
+                <option value="finished">Finished</option>
+              </select>
+            </div>
+            <div class="form-group checkbox">
+              <label for="task-highlight">Highlight Task</label>
+              <input type="checkbox" id="task-highlight">
+            </div>
+            <button type="submit" id="save-task-btn">Save Task</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tag Management Section -->
+      <section id="tag-management">
+        <h2>Manage Tags</h2>
+        <div id="tags-list"></div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
