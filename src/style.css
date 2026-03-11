@@ -11,26 +11,28 @@
 }
 
 :root {
-  --bg-color: #ffffff;
-  --text-color: #333333;
-  --sidebar-bg: #f5f5f5;
-  --card-bg: #ffffff;
-  --border-color: #e0e0e0;
-  --accent-color: #2196f3;
-  --header-line: #dddddd;
-  --shadow: 0 2px 4px rgba(0,0,0,0.05);
-  --modal-bg: rgba(0,0,0,0.4);
+  --bg-color: rgba(255, 255, 255, 0.02);
+  --text-color: #000000;
+  --sidebar-bg: rgba(245, 245, 245, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.2);
+  --modal-content-bg: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(0, 0, 0, 0.12);
+  --accent-color: #1976d2;
+  --header-line: rgba(0, 0, 0, 0.15);
+  --shadow: 0 2px 4px rgba(0,0,0,0.1);
+  --modal-bg: rgba(0,0,0,0.25);
 }
 
 body.dark-mode {
-  --bg-color: #121212;
+  --bg-color: rgba(18, 18, 18, 0.05);
   --text-color: #e0e0e0;
-  --sidebar-bg: #1e1e1e;
-  --card-bg: #2d2d2d;
-  --border-color: #444444;
-  --header-line: #444444;
-  --shadow: 0 4px 12px rgba(0,0,0,0.3);
-  --modal-bg: rgba(0,0,0,0.7);
+  --sidebar-bg: rgba(30, 30, 30, 0.2);
+  --card-bg: rgba(45, 45, 45, 0.3);
+  --modal-content-bg: rgba(20, 20, 20, 0.8);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --header-line: rgba(255, 255, 255, 0.1);
+  --shadow: 0 4px 12px rgba(0,0,0,0.2);
+  --modal-bg: rgba(0,0,0,0.4);
 }
 
 * {
@@ -42,7 +44,8 @@ body.dark-mode {
 body {
   font-family: 'AppFont', sans-serif;
   font-size: 18px;
-  background-color: var(--bg-color);
+  background: url('/resources/images/bg.png') no-repeat center center fixed;
+  background-size: cover;
   color: var(--text-color);
   margin: 0;
   display: flex;
@@ -63,6 +66,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 30px 20px;
+  backdrop-filter: blur(1px);
 }
 
 .brand {
@@ -117,6 +121,8 @@ body.dark-mode .nav-btn:hover {
   padding: 40px;
   overflow-y: auto;
   position: relative;
+  background-color: var(--bg-color);
+  backdrop-filter: blur(1px);
 }
 
 header {
@@ -167,7 +173,7 @@ h1 {
 
 .group-header h2 {
   font-size: 1.2rem;
-  color: #888;
+  color: #555;
   margin: 0;
   display: flex;
   align-items: center;
@@ -220,7 +226,7 @@ h1 {
 }
 
 .task-card-date {
-  color: #888;
+  color: #444;
   font-size: 1rem;
   grid-column: 1;
   grid-row: 2;
@@ -322,13 +328,14 @@ body.dark-mode .tag-label[data-tag="Finished"], body.dark-mode .tag-opt[data-tag
   position: absolute;
   right: 0;
   top: 45px;
-  background: var(--card-bg);
+  background: var(--modal-content-bg);
   border: 1px solid var(--border-color);
   padding: 20px;
   z-index: 100;
   width: 340px;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  backdrop-filter: blur(5px);
 }
 
 .sort-row {
@@ -387,12 +394,13 @@ body.dark-mode .sort-opt:hover, body.dark-mode .filter-opt:hover, body.dark-mode
 }
 
 .modal-content {
-  background: var(--card-bg);
+  background: var(--modal-content-bg);
   margin: 8vh auto;
   padding: 30px;
   width: 800px;
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  backdrop-filter: blur(1px);
 }
 
 .modal-content.task-detail-content {
@@ -517,11 +525,11 @@ body.dark-mode .sort-opt:hover, body.dark-mode .filter-opt:hover, body.dark-mode
   gap: 40px;
   margin-bottom: 30px;
   font-size: 0.95rem;
-  color: #666;
+  color: #333;
 }
 
 body.dark-mode .detail-meta {
-  color: #aaa;
+  color: #ccc;
 }
 
 .subtask-section h3 {
