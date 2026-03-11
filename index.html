@@ -116,6 +116,26 @@
                         <button class="tag-opt" data-tag="Finished">Finished</button>
                     </div>
                 </div>
+                <div class="subtask-section">
+                    <h3>Sub-task</h3>
+                    <div id="subtask-form-add-modal" class="subtask-add-form">
+                        <input type="text" id="subtask-name-add-modal" placeholder="Sub-task name">
+                        <input type="text" id="subtask-desc-add-modal" placeholder="Description" class="flex-grow">
+                        <button id="confirm-subtask-btn-add-modal">Add</button>
+                    </div>
+                    <table class="subtask-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Desc</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subtask-list-add-modal">
+                            <!-- Temporary subtasks will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="modal-actions right">
                     <button id="save-task-btn">Save</button>
                     <button id="cancel-task-btn">Cancel</button>

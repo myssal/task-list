@@ -22,6 +22,7 @@ const taskAddModal = document.getElementById('task-add-modal')!;
 const taskDetailModal = document.getElementById('task-detail-modal')!;
 
 let currentEditingTag: TaskTag = 'Pending';
+let tempSubTasks: any[] = [];
 
 // API
 async function loadData() {
@@ -163,7 +164,7 @@ function renderTasks() {
                 <div class="task-card-header">
                     <h3>${task.name}</h3>
                     <div class="task-card-meta">
-                        <span class="tag-label">${task.tag}</span>
+                        <span class="tag-label" data-tag="${task.tag}">${task.tag}</span>
                         <button class="detail-btn" data-id="${task.id}">Detail</button>
                     </div>
                 </div>
@@ -199,9 +200,54 @@ fabAdd.onclick = () => {
     (document.getElementById('task-desc') as HTMLTextAreaElement).value = '';
     (document.getElementById('task-deadline') as HTMLInputElement).value = '';
     currentEditingTag = 'Pending';
+    tempSubTasks = [];
+    renderTempSubTasks();
     updateTagSelector();
     taskAddModal.style.display = 'block';
 };
+
+const subtaskFormAddModal = document.getElementById('subtask-form-add-modal')!;
+const confirmSubtaskBtnAddModal = document.getElementById('confirm-subtask-btn-add-modal')!;
+
+confirmSubtaskBtnAddModal.onclick = () => {
+    const name = (document.getElementById('subtask-name-add-modal') as HTMLInputElement).value;
+    const desc = (document.getElementById('subtask-desc-add-modal') as HTMLInputElement).value;
+    if (!name) return;
+
+    tempSubTasks.push({
+        id: Date.now().toString(),
+        name,
+        description: desc,
+        status: 'Pending'
+    });
+
+    (document.getElementById('subtask-name-add-modal') as HTMLInputElement).value = '';
+    (document.getElementById('subtask-desc-add-modal') as HTMLInputElement).value = '';
+    subtaskFormAddModal.style.display = 'none';
+    renderTempSubTasks();
+};
+
+function renderTempSubTasks() {
+    const list = document.getElementById('subtask-list-add-modal')!;
+    list.innerHTML = '';
+    tempSubTasks.forEach((sub, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${sub.name}</td>
+            <td>${sub.description}</td>
+            <td><button class="del-temp-sub-btn" data-index="${index}">Delete</button></td>
+        `;
+        list.appendChild(row);
+    });
+
+    document.querySelectorAll('.del-temp-sub-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const index = parseInt((e.target as HTMLButtonElement).dataset.index!);
+            tempSubTasks.splice(index, 1);
+            renderTempSubTasks();
+        };
+    });
+}
 
 function updateTagSelector() {
     document.querySelectorAll('.tag-opt').forEach(btn => {
@@ -230,7 +276,7 @@ document.getElementById('save-task-btn')!.onclick = async () => {
         tag: currentEditingTag,
         dateAdded: new Date().toISOString(),
         dateModified: new Date().toISOString(),
-        subTasks: []
+        subTasks: tempSubTasks
     };
 
     allTasks.push(newTask);
@@ -239,7 +285,38 @@ document.getElementById('save-task-btn')!.onclick = async () => {
     renderTasks();
 };
 
-document.getElementById('cancel-task-btn')!.onclick = () => taskAddModal.style.display = 'none';
+document.getElementById('cancel-task-btn')!.onclick = () => {
+    if (checkUnsavedAdd()) {
+        if (confirm('You have unsaved data. Are you sure you want to close?')) {
+            taskAddModal.style.display = 'none';
+        }
+    } else {
+        taskAddModal.style.display = 'none';
+    }
+};
+
+function checkUnsavedAdd() {
+    const name = (document.getElementById('task-name') as HTMLInputElement).value;
+    const desc = (document.getElementById('task-desc') as HTMLTextAreaElement).value;
+    const deadline = (document.getElementById('task-deadline') as HTMLInputElement).value;
+    return name || desc || deadline;
+}
+
+function checkUnsavedDetail() {
+    const subName = (document.getElementById('subtask-name') as HTMLInputElement).value;
+    const subDesc = (document.getElementById('subtask-desc') as HTMLInputElement).value;
+    return subName || subDesc;
+}
+
+function closeDetail() {
+    if (checkUnsavedDetail()) {
+        if (confirm('You have unsaved sub-task data. Are you sure you want to close?')) {
+            taskDetailModal.style.display = 'none';
+        }
+    } else {
+        taskDetailModal.style.display = 'none';
+    }
+}
 
 // Detail
 function showDetail(id: string) {
@@ -247,10 +324,16 @@ function showDetail(id: string) {
     if (!task) return;
 
     document.getElementById('detail-name')!.textContent = task.name;
-    document.getElementById('detail-tag')!.textContent = task.tag;
+    const detailTag = document.getElementById('detail-tag')!;
+    detailTag.textContent = task.tag;
+    detailTag.setAttribute('data-tag', task.tag);
     document.getElementById('detail-added')!.textContent = new Date(task.dateAdded).toLocaleDateString();
     document.getElementById('detail-deadline')!.textContent = task.deadline || 'None';
     
+    // Clear subtask inputs
+    (document.getElementById('subtask-name') as HTMLInputElement).value = '';
+    (document.getElementById('subtask-desc') as HTMLInputElement).value = '';
+
     renderSubTasks(task);
 
     document.getElementById('add-subtask-btn')!.onclick = async () => {
@@ -274,10 +357,12 @@ function showDetail(id: string) {
     };
 
     document.getElementById('delete-task-btn')!.onclick = async () => {
-        allTasks = allTasks.filter(t => t.id !== id);
-        await saveData();
-        taskDetailModal.style.display = 'none';
-        renderTasks();
+        if (confirm('Are you sure you want to delete this task?')) {
+            allTasks = allTasks.filter(t => t.id !== id);
+            await saveData();
+            taskDetailModal.style.display = 'none';
+            renderTasks();
+        }
     };
 
     taskDetailModal.style.display = 'block';
@@ -291,11 +376,15 @@ function renderSubTasks(task: Task) {
 
     task.subTasks.forEach(sub => {
         const row = document.createElement('tr');
+        row.setAttribute('data-sub-id', sub.id);
         row.innerHTML = `
-            <td>${sub.name}</td>
-            <td>${sub.description}</td>
+            <td class="sub-name">${sub.name}</td>
+            <td class="sub-desc">${sub.description}</td>
             <td><button class="toggle-sub-btn" data-sub-id="${sub.id}">${sub.status}</button></td>
-            <td><button class="del-sub-btn" data-sub-id="${sub.id}">Delete</button></td>
+            <td>
+                <button class="edit-sub-btn" data-sub-id="${sub.id}">Update</button>
+                <button class="del-sub-btn" data-sub-id="${sub.id}">Delete</button>
+            </td>
         `;
         container.appendChild(row);
     });
@@ -312,17 +401,89 @@ function renderSubTasks(task: Task) {
         });
     });
 
+    document.querySelectorAll('.edit-sub-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const subId = (e.target as HTMLButtonElement).dataset.subId!;
+            const row = (e.target as HTMLElement).closest('tr')!;
+            const nameTd = row.querySelector('.sub-name')!;
+            const descTd = row.querySelector('.sub-desc')!;
+            
+            if (row.classList.contains('editing')) return;
+            row.classList.add('editing');
+
+            const nameVal = nameTd.textContent!;
+            const descVal = descTd.textContent!;
+
+            nameTd.innerHTML = `<input type="text" class="edit-name-input" value="${nameVal}">`;
+            descTd.innerHTML = `<input type="text" class="edit-desc-input" value="${descVal}">`;
+
+            const nameInput = nameTd.querySelector('input')!;
+            const descInput = descTd.querySelector('input')!;
+
+            const saveEdit = async () => {
+                const sub = task.subTasks.find(s => s.id === subId);
+                if (sub) {
+                    sub.name = nameInput.value;
+                    sub.description = descInput.value;
+                    await saveData();
+                }
+                renderSubTasks(task);
+            };
+
+            const handleOutsideClick = (event: MouseEvent) => {
+                if (!row.contains(event.target as Node)) {
+                    saveEdit();
+                    document.removeEventListener('mousedown', handleOutsideClick);
+                }
+            };
+
+            // Delay adding the listener to avoid immediate trigger from the edit button click
+            setTimeout(() => {
+                document.addEventListener('mousedown', handleOutsideClick);
+            }, 0);
+
+            // Also save on Enter key
+            const handleEnter = (event: KeyboardEvent) => {
+                if (event.key === 'Enter') {
+                    saveEdit();
+                    document.removeEventListener('mousedown', handleOutsideClick);
+                }
+            };
+            nameInput.addEventListener('keypress', handleEnter);
+            descInput.addEventListener('keypress', handleEnter);
+            
+            nameInput.focus();
+        });
+    });
+
     document.querySelectorAll('.del-sub-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
-            const subId = (e.target as HTMLButtonElement).dataset.subId!;
-            task.subTasks = task.subTasks.filter(s => s.id !== subId);
-            await saveData();
-            renderSubTasks(task);
+            if (confirm('Delete sub-task?')) {
+                const subId = (e.target as HTMLButtonElement).dataset.subId!;
+                task.subTasks = task.subTasks.filter(s => s.id !== subId);
+                await saveData();
+                renderSubTasks(task);
+            }
         });
     });
 }
 
-document.getElementById('close-detail-btn')!.onclick = () => taskDetailModal.style.display = 'none';
+document.getElementById('close-detail-btn')!.onclick = () => closeDetail();
+
+// Click outside modals to close
+window.onclick = (event) => {
+    if (event.target === taskAddModal) {
+        if (checkUnsavedAdd()) {
+            if (confirm('You have unsaved data. Are you sure you want to close?')) {
+                taskAddModal.style.display = 'none';
+            }
+        } else {
+            taskAddModal.style.display = 'none';
+        }
+    } else if (event.target === taskDetailModal) {
+        closeDetail();
+    }
+};
 
 // Dark Mode
 document.getElementById('dark-mode-toggle')!.addEventListener('change', (e) => {
