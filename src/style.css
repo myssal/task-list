@@ -212,6 +212,16 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   align-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtask-count {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: #aaa;
+  flex-shrink: 0;
 }
 
 .task-card-date {
@@ -481,6 +491,36 @@ body.dark-mode .sort-opt:hover, body.dark-mode .filter-opt:hover, body.dark-mode
 #delete-task-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+#detail-name, #detail-tag, #detail-deadline {
+  cursor: pointer;
+}
+
+.edit-inline-input, .edit-inline-select {
+  padding: 4px 8px;
+  font-size: 1rem;
+  border: 1px solid var(--accent-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+#detail-name .edit-inline-input {
+  font-size: 1.5rem;
+  font-weight: bold;
+  width: 100%;
+}
+
+#detail-tag .edit-inline-select {
+  font-size: 0.9rem;
+  font-weight: bold;
+  background: var(--sidebar-bg);
+}
+
+#detail-deadline .edit-inline-input {
+  font-size: 0.95rem;
 }
 
 /* Detail Modal specific */

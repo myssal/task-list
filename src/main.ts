@@ -153,9 +153,11 @@ function renderTasks() {
         tasks.forEach(task => {
             const card = document.createElement('div');
             card.className = 'task-card';
+            const subCount = (task.subTasks || []).length;
+            const subLabel = subCount < 2 ? 'subtask' : 'subtasks';
             card.innerHTML = `
                 <div class="task-card-header">
-                    <h3>${task.name}</h3>
+                    <h3>${task.name} <span class="subtask-count">${subCount} ${subLabel}</span></h3>
                     <div class="task-card-meta">
                         <span class="tag-label" data-tag="${task.tag}">${task.tag}</span>
                         <button class="detail-btn" data-id="${task.id}">Detail</button>
@@ -322,6 +324,83 @@ function showDetail(id: string) {
     detailTag.setAttribute('data-tag', task.tag);
     document.getElementById('detail-added')!.textContent = new Date(task.dateAdded).toLocaleDateString();
     document.getElementById('detail-deadline')!.textContent = task.deadline || 'None';
+
+    // Double-click to edit
+    const detailName = document.getElementById('detail-name')!;
+    detailName.ondblclick = () => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = task.name;
+        input.className = 'edit-inline-input';
+        detailName.innerHTML = '';
+        detailName.appendChild(input);
+        input.focus();
+        input.onclick = (e) => e.stopPropagation();
+
+        const save = async () => {
+            if (input.value.trim()) {
+                task.name = input.value.trim();
+                task.dateModified = new Date().toISOString();
+                await saveData();
+                renderTasks();
+            }
+            detailName.textContent = task.name;
+        };
+
+        input.onblur = save;
+        input.onkeydown = (e) => { if (e.key === 'Enter') save(); };
+    };
+
+    detailTag.ondblclick = () => {
+        const select = document.createElement('select');
+        select.className = 'edit-inline-select';
+        ['Highlight', 'Pending', 'On hold', 'Finished'].forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            if (t === task.tag) opt.selected = true;
+            select.appendChild(opt);
+        });
+        detailTag.innerHTML = '';
+        detailTag.appendChild(select);
+        select.focus();
+        select.onclick = (e) => e.stopPropagation();
+
+        const save = async () => {
+            task.tag = select.value as TaskTag;
+            task.dateModified = new Date().toISOString();
+            await saveData();
+            renderTasks();
+            detailTag.textContent = task.tag;
+            detailTag.setAttribute('data-tag', task.tag);
+        };
+
+        select.onblur = save;
+        select.onchange = save;
+    };
+
+    const detailDeadline = document.getElementById('detail-deadline')!;
+    detailDeadline.ondblclick = () => {
+        const input = document.createElement('input');
+        input.type = 'date';
+        input.value = task.deadline || '';
+        input.className = 'edit-inline-input';
+        detailDeadline.innerHTML = '';
+        detailDeadline.appendChild(input);
+        input.focus();
+        input.onclick = (e) => e.stopPropagation();
+
+        const save = async () => {
+            task.deadline = input.value;
+            task.dateModified = new Date().toISOString();
+            await saveData();
+            renderTasks();
+            detailDeadline.textContent = task.deadline || 'None';
+        };
+
+        input.onblur = save;
+        input.onkeydown = (e) => { if (e.key === 'Enter') save(); };
+    };
     
     // Clear subtask inputs
     (document.getElementById('subtask-name') as HTMLInputElement).value = '';
@@ -347,6 +426,7 @@ function showDetail(id: string) {
         
         await saveData();
         renderSubTasks(task);
+        renderTasks();
     };
 
     document.getElementById('delete-task-btn')!.onclick = async () => {
@@ -456,6 +536,7 @@ function renderSubTasks(task: Task) {
                 task.subTasks = task.subTasks.filter(s => s.id !== subId);
                 await saveData();
                 renderSubTasks(task);
+                renderTasks();
             }
         });
     });
